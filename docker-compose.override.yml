@@ -1,0 +1,14 @@
+services:
+  mailcatcher:
+    container_name: ${PROJECT_NAME}-mailcatcher
+    image: ${MAILCATCHER_IMAGE}
+    ports:
+      - ${MAILCATCHER_PORT}:1080
+
+volumes:
+  db-data:
+
+networks:
+  default:
+    external: true
+    name: ${PROJECT_NAME}-network

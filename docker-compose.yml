@@ -1,0 +1,47 @@
+services:
+  db:
+    container_name: ${PROJECT_NAME}-db
+    image: mysql:${MYSQL_IMAGE}
+    ports:
+      - ${MYSQL_PORT}:3306
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+    volumes:
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/mysql
+
+  nginx:
+    container_name: ${PROJECT_NAME}-nginx
+    build:
+      dockerfile: docker/nginx/Dockerfile
+      args:
+        NGINX_IMAGE: ${NGINX_IMAGE}
+    environment:
+      VIRTUAL_HOST: ${PROJECT_NAME}
+    restart: "no"
+    ports:
+      - ${HTTP_PORT}:80
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./src/public:/var/www/public
+
+  php:
+    container_name: ${PROJECT_NAME}-php
+    build:
+      dockerfile: docker/php/Dockerfile
+      args:
+        PHP_IMAGE: ${PHP_IMAGE}
+    restart: "no"
+    depends_on:
+      - db
+    volumes:
+      - ./src:/var/www
+      - ./composer/composer:/usr/local/bin/composer
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+      - ./docker/php/php.ini:/usr/local/etc/php/conf.d/php.ini
+
+volumes:
+  db-data:
